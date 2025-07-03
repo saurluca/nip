@@ -75,36 +75,43 @@ class Sequential:
             x = layer(x)
         return x
     
+    def params(self):
+        for layer in self.layers:
+            yield from layer.params()
+    
         
 class LinearLayer:
-    def __init__(self, in_dim: int, out_dim: int, activation_fn):
-        self.activation_fn = activation_fn
+    def __init__(self, in_dim: int, out_dim: int):
+        # self.activation_fn = activation_fn
         self.W = 0.1 * np.random.randn(out_dim, in_dim)
         self.b = np.zeros(out_dim)
         self.dW = 0.0
         self.db = 0.0
-        self.input = None
-        self.a = None
+        self.x = None
+        # self.a = None
     
     def forward(self, x):
         # print(f"x: {x}, self.W {self.W}, self.b {self.b}")
-        self.input = x
-        a = self.W @ x + self.b
-        self.a = a
-        x = self.activation_fn(a)
-        return x
+        self.x = x
+        return self.W @ x + self.b
+        # self.a = a
+        # x = self.activation_fn(a)
+        # return x
     
     def backward(self, grad):
         # print(f"shape of incoming grad {grad.shape}")
         # print(f"shape of W {self.W.shape}")
-        grad = self.activation_fn.backward(self.a) * grad
-        self.dW = np.outer(grad, self.input)
+        # grad = self.activation_fn.backward(self.a) * grad
+        self.dW = np.outer(grad, self.x)
         self.db = grad 
         grad = self.W.T @ grad 
         return grad
 
     def __call__(self, x):
         return self.forward(x)
+    
+    def params(self):
+        return self.W, self.b
 
 
 def train(train_data, model, criterion, optimiser, n_epochs=10):
